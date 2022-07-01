@@ -16,6 +16,7 @@ async function run(){
         await client.connect();
         console.log('db connect');
         const taskCollecton = client.db('taskmanage').collection('addtask');
+        const completeCollecton = client.db('taskmanage').collection('completeTask');
 
         app.get('/task', async (req, res) => {
 
@@ -24,10 +25,22 @@ async function run(){
             const task = await carsor.toArray();
             res.send(task);
         })
+        app.get('/complete', async (req, res) => {
+
+            const query = {};
+            const carsor = completeCollecton.find(query);
+            const task = await carsor.toArray();
+            res.send(task);
+        })
         app.post('/task', async (req, res) => {
             const newTask = req.body;
             const result = await taskCollecton.insertOne(newTask);
 
+            res.send(result);
+        });
+        app.post('/complete', async (req, res) => {
+            const newTask = req.body;
+            const result = await completeCollecton.insertOne(newTask);
             res.send(result);
         });
         app.get('/task/:id',async(req,res)=>{
