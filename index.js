@@ -1,7 +1,7 @@
 const express = require('express');
 const app=express();
 const port=process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion,ObjectId } = require('mongodb');
 const cors = require('cors');
 app.use(cors());
 app.use(express.json());
@@ -15,6 +15,49 @@ async function run(){
     try{
         await client.connect();
         console.log('db connect');
+        const taskCollecton = client.db('taskmanage').collection('addtask');
+
+        app.get('/task', async (req, res) => {
+
+            const query = {};
+            const carsor = taskCollecton.find(query);
+            const task = await carsor.toArray();
+            res.send(task);
+        })
+        app.post('/task', async (req, res) => {
+            const newTask = req.body;
+            const result = await taskCollecton.insertOne(newTask);
+
+            res.send(result);
+        });
+        app.get('/task/:id',async(req,res)=>{
+            const id=req.params.id;
+            const query={_id:ObjectId(id)};
+            const task=await taskCollecton.findOne(query);
+            res.send(task);
+        })
+
+        app.delete('/task/:id',async(req,res)=>{
+            const id=req.params.id;
+            const query={_id:ObjectId(id)};
+            const task=await taskCollecton.deleteOne(query);
+            res.send(task);
+        })
+
+        app.put('/task/:id',async(req,res)=>{
+            const id=req.params.id;
+            const taskUpdates=req.body;
+            const filter={_id:ObjectId(id)};
+            const options={upsert:true};
+            const updateing={
+                $set:{
+                    name:taskUpdates.name,
+                    description:taskUpdates.description
+                }
+            }
+            const task=await taskCollecton.updateOne(filter,updateing,options);
+            res.send(task);
+        })
 
     }
     finally{
